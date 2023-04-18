@@ -1,0 +1,31 @@
+import vk_api
+from pprint import pprint
+
+def main():
+    login, password = LOGIN, PASSWORD
+    vk_session = vk_api.VkApi(login, password)
+
+    try:
+        vk_session.auth(token_only=True)
+    except vk_api.AuthError as error_msg:
+        print(error_msg)
+        return
+
+    vk = vk_session.get_api()
+
+    friends = []
+    response = vk.friends.get(fields="bdate")
+    if response['items']:
+        for i in response['items']:
+            name, surname = i['first_name'], i['last_name']
+            if 'bdate' in i:
+                b_date = i['bdate']
+            else:
+                b_date = "None"
+            friends.append((name, surname, b_date))
+    friends = sorted(friends, key=lambda x: x[1])
+    pprint(friends)
+
+
+if __name__ == '__main__':
+    main()
