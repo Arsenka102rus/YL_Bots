@@ -1,0 +1,30 @@
+import vk_api
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+import random
+import datetime
+
+
+def main():
+    vk_session = vk_api.VkApi(token=TOKEN)
+
+    longpoll = VkBotLongPoll(vk_session, group_id)
+
+    for event in longpoll.listen():
+
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            sender = event.obj.message['from_id']
+            text = event.obj.message['text']
+            vk = vk_session.get_api()
+            try:
+                day = datetime.datetime.strptime(text, "%Y-%m-%d").strftime("%A")
+                vk.messages.send(user_id=sender,
+                                 message=f"It's {day}",
+                                 random_id=random.randint(0, 2 ** 64))
+            except Exception as error:
+                vk.messages.send(user_id=sender,
+                                 message=f"Введите дату в формате YYYY-MM-DD, и я скажу, какой день недели это был",
+                                 random_id=random.randint(0, 2 ** 64))
+
+
+if __name__ == '__main__':
+    main()
