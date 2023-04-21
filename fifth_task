@@ -1,0 +1,47 @@
+import random
+import vk_api
+import os
+from dotenv import load_dotenv, find_dotenv
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+import datetime
+
+load_dotenv(find_dotenv())
+LOGIN = os.environ.get("LOGIN")
+PASSWORD = os.environ.get("PASSWORD")
+TOKEN = os.environ.get("TOKEN")
+
+
+def main():
+    vk_session = vk_api.VkApi(
+        token=TOKEN)
+
+    date_words = ["время", "число", "дата", "день"]
+
+    longpoll = VkBotLongPoll(vk_session, group_id)
+
+    for event in longpoll.listen():
+
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            print(event)
+            print('Новое сообщение:')
+            sender = event.obj.message['from_id']
+            print('Для меня от:', sender)
+            text = event.obj.message['text']
+            print('Текст:', text)
+            vk = vk_session.get_api()
+            now = datetime.datetime.now()
+            today_date = now.date()
+            delta = datetime.timedelta(hours=-2)
+            time = (now + delta).time()
+            if any(word in text for word in date_words):
+                vk.messages.send(user_id=sender,
+                                 message=f"Дата: {today_date.strftime('%d-%m-%y')}\nВремя МСК: {time.strftime('%H:%M')}\nДень недели: {today_date.strftime('%A')}",
+                                 random_id=random.randint(0, 2 ** 64))
+            else:
+                vk.messages.send(user_id=sender,
+                                 message="Если вы напишите «время», «число», «дата» или «день», то получите актуальную информацию",
+                                 random_id=random.randint(0, 2 ** 64))
+
+
+if __name__ == '__main__':
+    main()
