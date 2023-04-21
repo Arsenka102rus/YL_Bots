@@ -1,0 +1,23 @@
+import vk_api
+import os
+
+
+def upload_pic(filename, album_id, group_id):
+    vk_session = vk_api.VkApi(login=LOGIN, password=PASSWORD)
+    try:
+        vk_session.auth(token_only=True)
+    except vk_api.AuthError as error_msg:
+        print(error_msg)
+        return
+    upload = vk_api.VkUpload(vk_session)
+    upload.photo(filename, album_id=album_id, group_id=group_id)
+
+    
+def main():
+    pics = ['static/img/first.jpg', 'static/img/second.jpg', 'static/img/third.jpg']
+    for pic in pics:
+        upload_pic(pic, album_id, group_id)
+
+
+if __name__ == '__main__':
+    main()
