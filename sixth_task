@@ -1,0 +1,66 @@
+import random
+import vk_api
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+import wikipedia
+
+
+def cut_messager(message):
+    message = message.split()
+    total = []
+    mini = []
+    for i in message:
+        if len(" ".join(mini + message)) <= 4096:
+            mini.append(i)
+        else:
+            total.extend(mini)
+            mini = [i]
+    return " ".join(total)
+
+
+def main():
+    vk_session = vk_api.VkApi(
+        token=TOKEN)
+
+    wikipedia.set_lang("ru")
+    longpoll = VkBotLongPoll(vk_session, group_id)
+
+    for event in longpoll.listen():
+
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            print(event)
+            print('Новое сообщение:')
+
+            sender = event.obj.message['from_id']
+            print(sender)
+            print('Для меня от:', sender)
+
+            text = event.obj.message['text']
+            print('Текст:', text)
+
+            vk = vk_session.get_api()
+
+            vk.messages.send(user_id=sender,
+                             message=f"Введите название вещи, о которой хотите узнать",
+                             random_id=random.randint(0, 2 ** 64))
+
+            for new_event in longpoll.listen():
+                if new_event.type == VkBotEventType.MESSAGE_NEW:
+                    new_sender = new_event.obj.message['from_id']
+                    print(new_sender)
+                    new_text = new_event.obj.message['text']
+                    response = wikipedia.search(new_text)
+                    if response:
+                        mes = wikipedia.summary(response[0])
+                        if len(mes) > 4096:
+                            mes = cut_messager(mes)
+                    else:
+                        mes = "По вашему запросу, к сожалению, ничего не найдено"
+                    vk = vk_session.get_api()
+                    vk.messages.send(user_id=new_sender,
+                                     message=mes,
+                                     random_id=random.randint(0, 2 ** 64))
+                    break
+
+
+if __name__ == '__main__':
+    main()
