@@ -1,0 +1,42 @@
+import vk_api
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+import random
+
+
+def get_picture():
+    vk_session = vk_api.VkApi(login=LOGIN, password=PASSWORD)
+    try:
+        vk_session.auth(token_only=True)
+    except vk_api.AuthError as error_msg:
+        print(error_msg)
+        return
+    total = []
+    vk = vk_session.get_api()
+    items = vk.photos.get(album_id=alb_id, group_id=group_id)['items']
+    for item in items:
+        total.append(f"photo{item['owner_id']}_{item['id']}")
+    return total
+
+
+def main():
+    vk_session = vk_api.VkApi(token=TOKEN)
+
+    longpoll = VkBotLongPoll(vk_session, group_id)
+    print('longpoll')
+
+    for event in longpoll.listen():
+        print('event')
+
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            print("got")
+            sender = event.obj.message['from_id']
+            vk = vk_session.get_api()
+            picture = random.choice(get_picture())
+            vk.messages.send(user_id=sender,
+                             message=f"Здарова, вот рандомная пикча из альбома",
+                             random_id=random.randint(0, 2 ** 64),
+                             attachment=picture)
+
+
+if __name__ == '__main__':
+    main()
