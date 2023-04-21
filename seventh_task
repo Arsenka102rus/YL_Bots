@@ -1,0 +1,20 @@
+import vk_api
+import os
+
+
+def main():
+    vk_session = vk_api.VkApi(login=LOGIN, password=PASSWORD)
+    try:
+        vk_session.auth(token_only=True)
+    except vk_api.AuthError as error_msg:
+        print(error_msg)
+        return
+    vk = vk_session.get_api()
+    items = vk.photos.get(album_id=alb_id, group_id=group_id)['items']
+    for item in items:
+        for data in item['sizes']:
+            print(f"height: {data['height']}; width: {data['width']};\nurl: {data['url']}")
+
+
+if __name__ == '__main__':
+    main()
